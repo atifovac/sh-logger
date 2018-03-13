@@ -1,0 +1,56 @@
+#! /bin/sh
+
+# USAGE:
+# import the entire file in your script
+#   . ${file location}
+# then use the log function
+#   log ${level} ${message}
+
+# check basic commands availability
+DATE=$(which date) || log "ERROR" "Cannot find date"
+ECHO=$(which echo) || log "ERROR" "Cannot find echo"
+
+# import dependencies
+COLORS_PATH="/usr/src/colors"
+if [ -f ${COLORS_PATH} ]; then
+  . ${COLORS_PATH}
+else
+  ${ECHO} "${COLORS_PATH} doesn't exists, colors not available"
+fi
+
+# export constants
+_INFO="INFO"
+_WARN="WARN"
+_ERROR="ERROR"
+
+log() {
+    TIMESTAMP=$(${DATE} '+%Y-%m-%d %H:%M:%S')
+    set_log_level $1
+    MSG=$2
+
+    ${ECHO} -e "${LOG_COLOR}${TIMESTAMP} [$LEVEL] ${MSG}${Color_Off}"
+}
+
+set_log_level() {
+    LEVEL=$(echo "$1" | tr '[:lower:]' '[:upper:]')
+    case $LEVEL in
+        $_INFO)
+            LOG_COLOR=${Cyan}
+            break;
+            ;;
+        $_WARN)
+            LOG_COLOR=${Yellow}
+            break;
+            ;;
+        $_ERROR)
+            LOG_COLOR=${Red}
+            break;
+            ;;
+        *)
+            log "WARN" "Log level $LEVEL not available, INFO level will be used"
+            set_log_level "INFO"
+            break;
+            ;;
+    esac
+}
+
