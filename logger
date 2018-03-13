@@ -36,20 +36,16 @@ set_log_level() {
     case $LEVEL in
         $_INFO)
             LOG_COLOR=${Cyan}
-            break;
             ;;
         $_WARN)
             LOG_COLOR=${Yellow}
-            break;
             ;;
         $_ERROR)
             LOG_COLOR=${Red}
-            break;
             ;;
         *)
             log "WARN" "Log level $LEVEL not available, INFO level will be used"
             set_log_level "INFO"
-            break;
             ;;
     esac
 }
