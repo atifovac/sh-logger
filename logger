@@ -6,16 +6,12 @@
 # then use the log function
 #   log ${level} ${message}
 
-# check basic commands availability
-DATE=$(which date) || log "ERROR" "Cannot find date"
-ECHO=$(which echo) || log "ERROR" "Cannot find echo"
-
 # import dependencies
 COLORS_PATH="/usr/src/colors"
 if [ -f ${COLORS_PATH} ]; then
   . ${COLORS_PATH}
 else
-  ${ECHO} "${COLORS_PATH} doesn't exists, colors not available"
+  echo "${COLORS_PATH} doesn't exists, colors not available"
 fi
 
 # export constants
@@ -27,19 +23,6 @@ _ERROR="ERROR"
 
 MIN_LOG_LEVEL=2
 
-log() {
-    input_level=$1
-    set_log_level ${input_level}
-    MSG=$2
-
-    get_level_number ${input_level}
-    if [ ${input_level} -ge ${LEVEL_NUMBER} ]; then
-        TIMESTAMP=$(${DATE} '+%Y-%m-%d %H:%M:%S')
-
-        ${ECHO} -e "${LOG_COLOR}${TIMESTAMP} [$LEVEL] ${MSG}${Color_Off}"
-    fi
-
-}
 
 set_min_level() {
     tmp_min_level=$1
@@ -50,66 +33,83 @@ set_min_level() {
     fi
 }
 
-set_log_level() {
-    LEVEL=$(echo "$1" | tr '[:lower:]' '[:upper:]')
-    case ${LEVEL} in
-        ${_TRACE} | ${_DEBUG})
-            LOG_COLOR=${White}
-            ;;
-        ${_INFO})
-            LOG_COLOR=${Cyan}
-            ;;
-        ${_WARN})
-            LOG_COLOR=${Yellow}
-            ;;
-        ${_ERROR})
-            LOG_COLOR=${Red}
-            ;;
-        *)
-            log "WARN" "Log level $LEVEL not available, INFO level will be used"
-            set_log_level "INFO"
-            ;;
-    esac
-}
+log() (
+    set_log_level() {
+        LEVEL=$(echo "$1" | tr '[:lower:]' '[:upper:]')
+        case ${LEVEL} in
+            ${_TRACE} | ${_DEBUG})
+                LOG_COLOR=${White}
+                ;;
+            ${_INFO})
+                LOG_COLOR=${Cyan}
+                ;;
+            ${_WARN})
+                LOG_COLOR=${Yellow}
+                ;;
+            ${_ERROR})
+                LOG_COLOR=${Red}
+                ;;
+            *)
+                log "WARN" "Log level $LEVEL not available, INFO level will be used"
+                set_log_level "INFO"
+                ;;
+        esac
+    }
 
-get_level_number() {
+    get_level_number() {
+        input_level=$1
+        case ${input_level} in
+            ${_TRACE})
+                echo 0
+                ;;
+            ${_DEBUG})
+                echo 1
+                ;;
+            ${_INFO})
+                echo 2
+                ;;
+            ${_WARN})
+                echo 3
+                ;;
+            ${_ERROR})
+                echo 4
+                ;;
+            *)
+                log "WARN" "Log level $LEVEL_NUMBER not available, 2 (INFO) will be used"
+                echo 2
+                ;;
+        esac
+    }
+
     input_level=$1
-    LEVEL_NUMBER=2
-    case ${input_level} in
-        ${_TRACE})
-            LEVEL_NUMBER=0
-            ;;
-        ${_DEBUG})
-            LEVEL_NUMBER=1
-            ;;
-        ${_INFO})
-            LEVEL_NUMBER=2
-            ;;
-        ${_WARN})
-            LEVEL_NUMBER=3
-            ;;
-        ${_ERROR})
-            LEVEL_NUMBER=4
-            ;;
-        *)
-            log "WARN" "Log level $LEVEL_NUMBER not available, 2 (INFO) will be used"
-            ;;
-    esac
-}
+    set_log_level ${input_level}
+    MSG=$2
 
-demo(){
+    LEVEL_NUMBER=$(get_level_number ${input_level})
+    if [ ${LEVEL_NUMBER} -ge ${MIN_LOG_LEVEL} ]; then
+        TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+
+        echo -e "${LOG_COLOR}${TIMESTAMP} [$LEVEL] ${MSG}${Color_Off}"
+    fi
+
+)
+
+demo() {
+    # print only some level
+    log ${_TRACE} "TRACE log"
+    log ${_DEBUG} "DEBUG log"
+    log ${_INFO} "INFO log"
+    log ${_WARN} "WARN log"
+    log ${_ERROR} "ERROR log"
+
+    # print all level
     set_min_level 0
-    log ${_TRACE} "test log"
-    log ${_DEBUG} "test log"
-    log ${_INFO} "test log"
-    log ${_WARN} "test log"
-    log ${_ERROR} "test log"
-    set_min_level 4
-    log ${_TRACE} "test log"
-    log ${_DEBUG} "test log"
-    log ${_INFO} "test log"
-    log ${_WARN} "test log"
-    log ${_ERROR} "test log"
+    log ${_TRACE} "TRACE log"
+    log ${_DEBUG} "DEBUG log"
+    log ${_INFO} "INFO log"
+    log ${_WARN} "WARN log"
+    log ${_ERROR} "ERROR log"
+    set_min_level 2
 }
 
 demo
