@@ -94,6 +94,26 @@ log() (
 
 )
 
+log_tra() {
+  log ${_TRACE} $1
+}
+
+log_deb() {
+  log ${_DEBUG} $1
+}
+
+log_inf() {
+  log ${_INFO} $1
+}
+
+log_war() {
+  log ${_WARN} $1
+}
+
+log_err() {
+  log ${_ERROR} $1
+}
+
 demo() {
     # print only some level
     log ${_TRACE} "TRACE log"
@@ -104,11 +124,11 @@ demo() {
 
     # print all level
     set_min_level 0
-    log ${_TRACE} "TRACE log"
-    log ${_DEBUG} "DEBUG log"
-    log ${_INFO} "INFO log"
-    log ${_WARN} "WARN log"
-    log ${_ERROR} "ERROR log"
+    log_tra "TRACE log"
+    log_deb "DEBUG log"
+    log_inf "INFO log"
+    log_war "WARN log"
+    log_err "ERROR log"
     set_min_level 2
 }
 
